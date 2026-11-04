@@ -47,10 +47,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body className="min-h-screen bg-bg font-sans text-ink antialiased">
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur">
-          <div className="mx-auto flex h-16 w-full max-w-[1200px] items-center justify-between px-6">
-            <Link href="/" className="flex items-center gap-3">
-              <Image src="/logo.png" alt="Logo OmniDevv" width={609} height={386} priority className="h-9 w-auto" />
-              <span className="text-lg font-extrabold tracking-tight">KANA Web</span>
+          <div className="mx-auto flex h-16 w-full max-w-[1200px] items-center justify-between px-4 sm:px-6">
+            <Link href="/" className="flex items-center gap-2.5">
+              <Image src="/logo.png" alt="Logo OmniDevv" width={609} height={386} priority className="h-8 w-auto sm:h-9" />
+              <span className="whitespace-nowrap text-lg font-extrabold tracking-tight">KANA Web</span>
             </Link>
             <nav className="hidden items-center gap-1 text-sm font-semibold sm:gap-2 md:flex">
               <Link href="/" className="rounded-full px-3 py-2 hover:bg-panel2">Beranda</Link>
@@ -63,9 +63,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 <Link href="/login" className="bg-gradient-brand rounded-full px-4 py-2 font-bold text-white hover:opacity-90">Masuk</Link>
               )}
             </nav>
-            <div className="flex items-center gap-2 md:hidden">
+            <div className="flex items-center gap-1.5 md:hidden">
+              <ThemeToggle />
               {session ? null : (
-                <Link href="/login" className="bg-gradient-brand rounded-full px-4 py-2 text-sm font-bold text-white hover:opacity-90">Masuk</Link>
+                <Link href="/login" className="bg-gradient-brand whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-bold text-white hover:opacity-90">Masuk</Link>
               )}
               <MobileNav loggedIn={Boolean(session)} />
             </div>
