@@ -71,6 +71,11 @@ export class SupabaseAdapter implements DataAdapter {
   }
 
   async getBotStatus(): Promise<BotStatus | null> {
+    // Kontrak utama docs/WEB.md kana-md: bot menulis statistik ke namespace
+    // kv dengan key bot_stats. Namespace bot_status key heartbeat hanya
+    // cadangan lama bila bot_stats belum ada.
+    const stats = await kvGet<BotStatus>("kv", "bot_stats");
+    if (stats) return stats;
     return kvGet<BotStatus>("bot_status", "heartbeat");
   }
 

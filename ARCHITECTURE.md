@@ -5,8 +5,9 @@ Aplikasi Next.js 16 App Router dengan TypeScript. Semua logika server berada di 
 
 ## Struktur Modul
 - src/app: halaman dan route handler. Beranda di page.tsx, katalog di plugins/page.tsx, login di login/page.tsx, dashboard di dashboard/page.tsx, dan API di app/api.
-- src/app/layout.tsx: metadata, font Plus Jakarta Sans, navigasi atas, dan footer. Sesi dibaca di server untuk menentukan tombol Masuk atau Keluar.
-- src/lib/plugins.ts: pengambilan katalog plugin dari GitHub, parsing metadata config, dan info tanggal commit.
+- src/app/layout.tsx: metadata, font Inter dan JetBrains Mono, navigasi atas dengan toggle tema, dan footer. Sesi dibaca di server untuk menentukan tombol Masuk atau Keluar.
+- src/app/plugins/[slug]/page.tsx: halaman detail plugin berisi daftar perintah dengan tombol salin, metrik file, dan kode sumber penuh.
+- src/lib/plugins.ts: pengambilan katalog plugin dari GitHub, parsing metadata config termasuk alias, usage, dan example menjadi daftar perintah, serta info commit untuk halaman detail.
 - src/lib/session.ts: pembuatan dan verifikasi token sesi HMAC, serta pembacaan sesi dari cookie.
 - src/lib/phone.ts: normalisasi dan validasi nomor Indonesia.
 - src/lib/profile.ts: perhitungan level, progres XP, dan limit harian mengikuti user-service bot.
@@ -27,7 +28,7 @@ Fungsi getAdapter memilih adapter berdasarkan DATA_MODE bila diisi dengan nilai 
 - Limit harian default 30. Bila limitDate tidak sama dengan tanggal hari ini di Asia/Jakarta, sisa limit dianggap 30. Selain itu sisa limit adalah limitLeft.
 - Login requests: namespace web_login_requests, key berupa digit nomor, value berisi codeHash, codePlain, expiresAt, status, attempts, dan createdAt. Web juga menulis kolom expires_at sama dengan expiresAt. Status yang valid adalah pending, sent, used, dan expired.
 - Rate limit harian: namespace web_login_ratelimit, key berupa gabungan nomor dan tanggal YYYY-MM-DD, value berisi count.
-- Statistik bot opsional: namespace bot_status, key heartbeat, value berisi onlineSince, lastSeen, commandsTotal, topCommands, dan scraperHealth. Bila tidak ada, dashboard owner menampilkan label menunggu data bot.
+- Statistik bot: namespace kv, key bot_stats, value berisi startedAt, totalUsers, totalCommands, pluginCount, dan updatedAt dalam epoch milidetik, persis kontrak docs/WEB.md di repo bot. Namespace bot_status key heartbeat adalah cadangan lama dan hanya dibaca bila bot_stats tidak ada. Bila keduanya tidak ada, dashboard owner menampilkan keadaan kosong yang jujur dan hanya menampilkan angka katalog GitHub.
 
 ## Alur Login
 1. POST /api/auth/request-code menerima nomor, menormalisasi, memeriksa rate limit jeda 2 menit dan batas harian 5, membuat kode 6 digit dengan crypto.randomInt, menyimpan hash sha256 dan record pending dengan masa berlaku 10 menit.
@@ -40,7 +41,7 @@ Fungsi getAdapter memilih adapter berdasarkan DATA_MODE bila diisi dengan nilai 
 Token sesi adalah base64url dari JSON berisi phone, role, dan exp, diikuti titik dan tanda tangan HMAC SHA256 hex memakai SESSION_SECRET. Cookie bernama kana_session bersifat httpOnly, sameSite lax, path /, dan maxAge 7 hari. Atribut secure bernilai true kecuali pada localhost pengembangan. Bila SESSION_SECRET kosong, server memakai nilai fallback khusus pengembangan yang deterministik agar konsisten antar bundle halaman dan route handler. Production wajib mengisi SESSION_SECRET dengan nilai rahasia sendiri.
 
 ## Katalog Plugin
-Daftar file diambil dari Git Trees API repo OmmniDevv/kana-md, disaring ke path plugins yang berakhiran .js. Isi mentah tiap file diambil dari raw.githubusercontent.com dengan cache 3600 detik. Metadata name, category, dan description diparse dari objek config dengan regex toleran. Bila parsing gagal, fallback memakai nama file, folder induk, dan deskripsi generik dengan label sumber fallback. Tanggal update diambil dari Commits API per path dan boleh kosong bila gagal.
+Daftar file diambil dari Git Trees API repo OmmniDevv/kana-md, disaring ke path plugins yang berakhiran .js. Isi mentah tiap file diambil dari raw.githubusercontent.com dengan cache 3600 detik hanya untuk memparse metadata, dan tidak dikirim ke klien katalog agar halaman tetap ringan untuk ratusan plugin. Metadata name, alias, category, description, usage, dan example diparse dari objek config dengan regex toleran. Daftar perintah tiap plugin adalah name ditambah alias, dan total perintah katalog adalah jumlah keduanya di semua plugin. Bila parsing gagal, fallback memakai nama file, folder induk, dan deskripsi generik dengan label sumber fallback. Halaman detail mengambil isi file dan tanggal commit dari Commits API per path, boleh kosong bila gagal.
 
 ## Unduh Plugin
 GET /api/plugins/download memvalidasi path harus diawali plugins/, berakhiran .js, dan tidak mengandung titik titik atau backslash. Pelanggaran ditolak 400. Konten diambil dari GitHub raw dan dikirim sebagai attachment text/javascript.

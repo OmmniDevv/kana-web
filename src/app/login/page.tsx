@@ -110,18 +110,18 @@ export default function LoginPage() {
 
   return (
     <div className="mx-auto w-full max-w-[560px] px-6 py-14">
-      <div className="mb-6 rounded-[20px] border border-[#ffd23d]/50 bg-[#ffd23d]/10 p-4 text-sm text-[#ffe98a]">
+      <div className="mb-6 rounded-3xl border border-warn bg-warnbg p-4 text-sm text-warn">
         <strong>MODE DEMO bila database belum terhubung:</strong> kode demo akan tampil di halaman ini dalam kotak DEMO. Di mode produksi, kode hanya dikirim lewat WhatsApp oleh bot.
       </div>
 
       <div key={shakeKey} className={error ? "animate-shake" : ""}>
-        <div className="rounded-[20px] border border-[#1d2b20] bg-[#0b120e] p-8">
+        <div className="rounded-3xl border border-line bg-panel p-8">
           <h1 className="text-3xl font-black">Masuk KANA Web</h1>
-          <p className="mt-2 text-sm leading-6 text-[#9db8a4]">Masukkan nomor WhatsApp kamu. Kode login diminta dari web ini, lalu bot mengirimnya ke WhatsApp kamu.</p>
+          <p className="mt-2 text-sm leading-6 text-muted">Masukkan nomor WhatsApp kamu. Kode login diminta dari web ini, lalu bot mengirimnya ke WhatsApp kamu.</p>
 
           {step === "success" ? (
             <div className="mt-8 text-center">
-              <div className="animate-checkPop mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#3dff5e] text-3xl font-black text-black">&#10003;</div>
+              <div className="animate-checkPop mx-auto bg-gradient-brand flex h-16 w-16 items-center justify-center rounded-full text-3xl font-black text-white">&#10003;</div>
               <p className="mt-4 font-bold">Berhasil masuk, mengalihkan ke dashboard...</p>
             </div>
           ) : step === "phone" ? (
@@ -132,22 +132,22 @@ export default function LoginPage() {
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="0812xxxxxxx atau 62812xxxxxxx"
                 inputMode="tel"
-                className="w-full rounded-xl border border-[#1d2b20] bg-black/40 px-4 py-3 text-white outline-none placeholder:text-[#9db8a4] focus:border-[#3dff5e]"
+                className="w-full rounded-2xl border border-line bg-bgsoft px-4 py-3 text-ink outline-none placeholder:text-muted focus:border-violet"
                 required
               />
-              {error ? <p className="text-sm font-semibold text-[#ff5d6c]">{error}</p> : null}
-              <button disabled={loading} className="w-full rounded-full bg-[#3dff5e] py-3 font-bold text-black hover:bg-[#a3ff5e] disabled:opacity-60">
+              {error ? <p className="text-sm font-semibold text-danger">{error}</p> : null}
+              <button disabled={loading} className="bg-gradient-brand w-full rounded-full py-3 font-bold text-white hover:opacity-90 disabled:opacity-60">
                 {loading ? "Meminta kode..." : "Minta Kode via WhatsApp"}
               </button>
             </form>
           ) : (
             <form onSubmit={verifyCode} className="mt-8 space-y-4">
-              <p className="rounded-xl bg-[#101a13] px-4 py-3 text-sm text-[#cfe8d4]">{statusText || "Kode sedang disiapkan"}</p>
+              <p className="rounded-2xl bg-bgsoft px-4 py-3 text-sm">{statusText || "Kode sedang disiapkan"}</p>
               {isDemo && demoCode ? (
-                <div className="rounded-xl border border-[#ffd23d] bg-[#ffd23d]/15 p-4 text-center">
-                  <p className="text-xs font-black uppercase tracking-widest text-[#ffd23d]">Peringatan DEMO, kode contoh</p>
+                <div className="rounded-2xl border border-warn bg-warnbg p-4 text-center">
+                  <p className="text-xs font-black uppercase tracking-widest text-warn">Peringatan DEMO, kode contoh</p>
                   <p className="animate-popIn mt-2 text-4xl font-black tracking-[0.3em]">{demoCode}</p>
-                  <p className="mt-2 text-xs text-[#ffe98a]">Kode ini hanya tampil di mode demo karena tidak ada bot yang mengirim WhatsApp.</p>
+                  <p className="mt-2 text-xs text-warn">Kode ini hanya tampil di mode demo karena tidak ada bot yang mengirim WhatsApp.</p>
                 </div>
               ) : null}
               <label className="block text-sm font-bold">Kode 6 digit</label>
@@ -156,14 +156,14 @@ export default function LoginPage() {
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                 placeholder="123456"
                 inputMode="numeric"
-                className="w-full rounded-xl border border-[#1d2b20] bg-black/40 px-4 py-3 text-center text-2xl font-black tracking-[0.4em] text-white outline-none placeholder:text-[#9db8a4] focus:border-[#3dff5e]"
+                className="w-full rounded-2xl border border-line bg-bgsoft px-4 py-3 text-center font-mono text-2xl font-black tracking-[0.4em] text-ink outline-none placeholder:text-muted focus:border-violet"
                 required
               />
-              {error ? <p className="text-sm font-semibold text-[#ff5d6c]">{error}</p> : null}
-              <button disabled={loading} className="w-full rounded-full bg-[#3dff5e] py-3 font-bold text-black hover:bg-[#a3ff5e] disabled:opacity-60">
+              {error ? <p className="text-sm font-semibold text-danger">{error}</p> : null}
+              <button disabled={loading} className="bg-gradient-brand w-full rounded-full py-3 font-bold text-white hover:opacity-90 disabled:opacity-60">
                 {loading ? "Memeriksa kode..." : "Verifikasi dan Masuk"}
               </button>
-              <button type="button" onClick={() => { setStep("phone"); setCode(""); setError(""); }} className="w-full text-sm font-semibold text-[#9db8a4] hover:text-white">Ganti nomor atau minta kode baru</button>
+              <button type="button" onClick={() => { setStep("phone"); setCode(""); setError(""); }} className="w-full text-sm font-semibold text-muted hover:text-ink">Ganti nomor atau minta kode baru</button>
             </form>
           )}
         </div>

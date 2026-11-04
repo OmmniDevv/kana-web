@@ -2,6 +2,7 @@ export interface UserProfile {
   xp: number;
   balance: number;
   banned: boolean;
+  registered: boolean;
   registeredAt: string | number | null;
   name: string;
   limitDate: string;
@@ -26,6 +27,13 @@ export interface LoginRequestRecord {
 }
 
 export interface BotStatus {
+  // Kontrak docs/WEB.md kana-md: namespace kv, key bot_stats.
+  startedAt?: number;
+  totalUsers?: number;
+  totalCommands?: number;
+  pluginCount?: number;
+  updatedAt?: number;
+  // Field lama dari heartbeat bot_status, dipertahankan sebagai cadangan.
   onlineSince?: string | number;
   lastSeen?: string | number;
   commandsTotal?: number;
@@ -51,6 +59,7 @@ export function defaultProfile(): UserProfile {
     xp: 0,
     balance: 0,
     banned: false,
+    registered: false,
     registeredAt: null,
     name: "",
     limitDate: "",
@@ -73,8 +82,9 @@ export function normalizeProfile(raw: Record<string, unknown> | null | undefined
     xp: Number(raw.xp ?? 0) || 0,
     balance: Number(raw.balance ?? 0) || 0,
     banned: Boolean(raw.banned ?? false),
+    registered: Boolean(raw.registered ?? false),
     registeredAt: (raw.registeredAt as string | number | null) ?? null,
-    name: String(raw.name ?? ""),
+    name: String(raw.name ?? raw.regName ?? ""),
     limitDate: String(raw.limitDate ?? ""),
     limitLeft: Number(raw.limitLeft ?? 30) || 0,
     inventory: (raw.inventory as Record<string, number>) ?? {},

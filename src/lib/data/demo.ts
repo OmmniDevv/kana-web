@@ -86,18 +86,9 @@ export class DemoAdapter implements DataAdapter {
   async getUserProfile(phone: string): Promise<UserProfile | null> {
     const profiles = demoProfiles();
     if (profiles[phone]) return profiles[phone];
-    return normalizeProfile({
-      xp: 150,
-      balance: 500,
-      name: "Member Demo",
-      limitDate: wibDateString(),
-      limitLeft: 29,
-      inventory: { potion: 1 },
-      pet: null,
-      job: "Pemula",
-      clanId: "",
-      registeredAt: new Date().toISOString(),
-    });
+    // Samakan kontrak dengan adapter Supabase: nomor tanpa profil demo
+    // mengembalikan null supaya dashboard menampilkan keadaan kosong.
+    return null;
   }
 
   async listUserKeys(): Promise<string[]> {
@@ -106,9 +97,11 @@ export class DemoAdapter implements DataAdapter {
 
   async getBotStatus(): Promise<BotStatus | null> {
     return {
-      onlineSince: new Date(Date.now() - 86400000).toISOString(),
-      lastSeen: new Date().toISOString(),
-      commandsTotal: 12840,
+      startedAt: Date.now() - 86400000,
+      totalUsers: 2,
+      totalCommands: 12840,
+      pluginCount: 176,
+      updatedAt: Date.now(),
       topCommands: [
         { name: "menu", count: 2100 },
         { name: "ping", count: 1800 },

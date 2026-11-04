@@ -12,7 +12,7 @@ export default function LogoutButton() {
   return (
     <button
       onClick={onLogout}
-      className="rounded-full bg-[#3dff5e] px-4 py-2 text-sm font-bold text-black hover:bg-[#a3ff5e]"
+      className="bg-gradient-brand rounded-full px-4 py-2 text-sm font-bold text-white hover:opacity-90"
     >
       Keluar
     </button>
