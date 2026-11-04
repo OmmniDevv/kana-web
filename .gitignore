@@ -1,0 +1,7 @@
+node_modules
+.next
+.env*
+!.env.example
+.vault
+out
+next-env.d.ts

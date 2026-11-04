@@ -1,0 +1,89 @@
+export interface UserProfile {
+  xp: number;
+  balance: number;
+  banned: boolean;
+  registeredAt: string | number | null;
+  name: string;
+  limitDate: string;
+  limitLeft: number;
+  inventory: Record<string, number>;
+  pet: unknown;
+  job: string;
+  clanId: string;
+  lastDaily: string;
+  lastHourly: number | string;
+  lastWeekly: string;
+  lastSeen?: number | null;
+}
+
+export interface LoginRequestRecord {
+  codeHash: string;
+  codePlain?: string;
+  expiresAt: string;
+  status: "pending" | "sent" | "used" | "expired";
+  attempts: number;
+  createdAt: string;
+}
+
+export interface BotStatus {
+  onlineSince?: string | number;
+  lastSeen?: string | number;
+  commandsTotal?: number;
+  topCommands?: Array<{ name: string; count: number } | string>;
+  scraperHealth?: Record<string, unknown> | Array<unknown>;
+  [key: string]: unknown;
+}
+
+export interface DataAdapter {
+  mode: "supabase" | "demo";
+  getLoginRequest(phone: string): Promise<LoginRequestRecord | null>;
+  putLoginRequest(phone: string, record: LoginRequestRecord): Promise<void>;
+  deleteLoginRequest(phone: string): Promise<void>;
+  getUserProfile(phone: string): Promise<UserProfile | null>;
+  listUserKeys(): Promise<string[]>;
+  getBotStatus(): Promise<BotStatus | null>;
+  getDailyCount(phone: string, dateKey: string): Promise<number>;
+  bumpDailyCount(phone: string, dateKey: string): Promise<number>;
+}
+
+export function defaultProfile(): UserProfile {
+  return {
+    xp: 0,
+    balance: 0,
+    banned: false,
+    registeredAt: null,
+    name: "",
+    limitDate: "",
+    limitLeft: 30,
+    inventory: {},
+    pet: null,
+    job: "",
+    clanId: "",
+    lastDaily: "",
+    lastHourly: 0,
+    lastWeekly: "",
+  };
+}
+
+export function normalizeProfile(raw: Record<string, unknown> | null | undefined): UserProfile {
+  const base = defaultProfile();
+  if (!raw) return base;
+  return {
+    ...base,
+    xp: Number(raw.xp ?? 0) || 0,
+    balance: Number(raw.balance ?? 0) || 0,
+    banned: Boolean(raw.banned ?? false),
+    registeredAt: (raw.registeredAt as string | number | null) ?? null,
+    name: String(raw.name ?? ""),
+    limitDate: String(raw.limitDate ?? ""),
+    limitLeft: Number(raw.limitLeft ?? 30) || 0,
+    inventory: (raw.inventory as Record<string, number>) ?? {},
+    pet: raw.pet ?? null,
+    job: String(raw.job ?? ""),
+    clanId: String(raw.clanId ?? ""),
+    lastDaily: String(raw.lastDaily ?? ""),
+    lastHourly: (raw.lastHourly as number | string) ?? 0,
+    lastWeekly: String(raw.lastWeekly ?? ""),
+    lastSeen: (raw.lastSeen as number | null) ?? null,
+  };
+}
