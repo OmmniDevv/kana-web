@@ -1,9 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import Image from "next/image";
 import Link from "next/link";
 import "./globals.css";
 import { getSession } from "@/lib/session";
 import LogoutButton from "@/components/LogoutButton";
+import MobileNav from "@/components/MobileNav";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const inter = Inter({
@@ -17,6 +19,13 @@ const jetbrains = JetBrains_Mono({
   display: "swap",
   variable: "--font-jetbrains",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://kana.omnicorp.web.id"),
@@ -40,10 +49,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <header className="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur">
           <div className="mx-auto flex h-16 w-full max-w-[1200px] items-center justify-between px-6">
             <Link href="/" className="flex items-center gap-3">
-              <span className="bg-gradient-brand flex h-9 w-9 items-center justify-center rounded-xl text-lg font-black text-white">K</span>
+              <Image src="/logo.png" alt="Logo OmniDevv" width={609} height={386} priority className="h-9 w-auto" />
               <span className="text-lg font-extrabold tracking-tight">KANA Web</span>
             </Link>
-            <nav className="flex items-center gap-1 text-sm font-semibold sm:gap-2">
+            <nav className="hidden items-center gap-1 text-sm font-semibold sm:gap-2 md:flex">
               <Link href="/" className="rounded-full px-3 py-2 hover:bg-panel2">Beranda</Link>
               <Link href="/plugins" className="rounded-full px-3 py-2 hover:bg-panel2">Plugin</Link>
               <Link href="/dashboard" className="rounded-full px-3 py-2 hover:bg-panel2">Dashboard</Link>
@@ -54,6 +63,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 <Link href="/login" className="bg-gradient-brand rounded-full px-4 py-2 font-bold text-white hover:opacity-90">Masuk</Link>
               )}
             </nav>
+            <div className="flex items-center gap-2 md:hidden">
+              {session ? null : (
+                <Link href="/login" className="bg-gradient-brand rounded-full px-4 py-2 text-sm font-bold text-white hover:opacity-90">Masuk</Link>
+              )}
+              <MobileNav loggedIn={Boolean(session)} />
+            </div>
           </div>
         </header>
         <main>{children}</main>
