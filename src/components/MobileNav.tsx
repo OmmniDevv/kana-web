@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import LogoutButton from "./LogoutButton";
-import ThemeToggle from "./ThemeToggle";
 
 const links = [
   { href: "/", label: "Beranda" },
@@ -70,11 +69,7 @@ export default function MobileNav({ loggedIn }: { loggedIn: boolean }) {
               </Link>
             ))}
           </nav>
-          <div className="mt-2 flex items-center justify-between border-t border-line px-4 pb-1 pt-3">
-            <span className="text-sm font-semibold text-muted">Tema tampilan</span>
-            <ThemeToggle />
-          </div>
-          <div className="px-1 pb-1 pt-2 [&>button]:w-full">
+          <div className="mt-2 border-t border-line px-1 pb-1 pt-3 [&>button]:w-full">
             {loggedIn ? (
               <LogoutButton />
             ) : (
