@@ -51,12 +51,10 @@ Build produksi lokal:
 4. Member memasukkan kode di web. Server memverifikasi, menandai record used, dan membuat cookie sesi.
 5. Member masuk ke /dashboard sesuai perannya.
 
-## Status Data Saat Deploy Pertama
-- Deploy publik pertama berjalan dalam MODE DEMO yang berlabel jelas di halaman login dan dashboard.
-- Penyebab: pembuatan proyek Supabase khusus kana-md ditolak Management API karena kuota proyek aktif Free Tier organisasi sudah penuh (2 proyek aktif). Adapter Supabase sudah selesai dan mengikuti kontrak bot.kv, jadi aktivasi data asli tidak perlu perubahan kode.
-- Langkah aktivasi data asli begitu kuota tersedia (salah satu proyek aktif dijeda, dihapus, atau plan diupgrade):
-  1. Buat proyek Supabase kana-md region ap-southeast-1.
-  2. Jalankan migrasi supabase/migrations/0001_init.sql dari repo kana-md.
-  3. Isi KANA_DATABASE_URL di env Vercel proyek kana-web dengan connection string pooler proyek itu, lalu redeploy.
-  4. Pastikan bot KANA memakai DATABASE_URL proyek yang sama agar record web_login_requests dan profil users terbaca dua arah.
+## Status Data
+- Data asli AKTIF sejak 2026-11-04. Web berjalan dengan SupabaseAdapter (DATA_MODE supabase), bukan mode demo lagi.
+- Proyek Supabase khusus KANA: nama kana-md, ref qvyvllvlvrlnzipjmplc, region ap-southeast-1, status ACTIVE_HEALTHY. Migrasi 0001_init.sql dari repo kana-md sudah dijalankan: tabel bot.kv dan bot.baileys_auth ada dengan RLS aktif.
+- KANA_DATABASE_URL di env Vercel proyek kana-web berisi connection string pooler proyek itu (nilai tidak ditulis di repo), dan production sudah diredeploy. Verifikasi live 2026-11-04: /login 200 tanpa label demo, POST /api/auth/request-code untuk nomor owner membalas ok tanpa bidang demo, dan record web_login_requests berstatus pending benar-benar tertulis di bot.kv.
+- Slot kuota didapat dengan menjeda proyek lama OmmniDevv's Project (ref xdjzykuzycncqprfnyfm, isi hampir kosong) atas persetujuan user. Proyek itu bisa direstore bila dibutuhkan lagi.
+- Sisa langkah di sisi bot: pastikan bot KANA production memakai DATABASE_URL proyek yang sama (sudah ditulis ke .env lokal repo kana-md) dan watcher login webnya jalan, agar kode yang diminta dari /login terkirim lewat WhatsApp dan profil users terbaca dua arah.
 - Perintah .webcode di bot hanya cadangan manual. Alur resmi login adalah kode yang diminta dari halaman /login seperti di atas.
