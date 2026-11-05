@@ -74,9 +74,18 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         </header>
         <main>{children}</main>
         <footer className="border-t border-line py-10">
-          <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-3 px-6 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
-            <p>KANA, Bot WhatsApp Moe. Katalog plugin diambil langsung dari GitHub OmmniDevv/kana-md.</p>
-            <p>Login aman dengan kode WhatsApp sekali pakai.</p>
+          <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-4 px-6 text-sm text-muted">
+            <nav className="flex flex-wrap gap-2 font-semibold">
+              <Link href="/premium" className="rounded-full border border-line px-4 py-2 hover:border-violet">💎 Premium dan Sewa</Link>
+              <Link href="/leaderboard" className="rounded-full border border-line px-4 py-2 hover:border-violet">🏆 Leaderboard</Link>
+              <Link href="/status" className="rounded-full border border-line px-4 py-2 hover:border-violet">Status Bot</Link>
+              <Link href="/plugins" className="rounded-full border border-line px-4 py-2 hover:border-violet">Katalog Plugin</Link>
+              <Link href="/dashboard" className="rounded-full border border-line px-4 py-2 hover:border-violet">Dashboard</Link>
+            </nav>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p>KANA, Bot WhatsApp Moe. Katalog plugin diambil langsung dari GitHub OmmniDevv/kana-md.</p>
+              <p>Login aman dengan kode WhatsApp sekali pakai.</p>
+            </div>
           </div>
         </footer>
       </body>

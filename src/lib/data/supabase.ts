@@ -1,5 +1,5 @@
 import { Pool } from "pg";
-import type { BotStatus, DataAdapter, LoginRequestRecord, UserProfile } from "./types";
+import type { AccessRecord, BotStatus, DataAdapter, LoginRequestRecord, TopUser, UserProfile } from "./types";
 import { normalizeProfile } from "./types";
 
 type GlobalPool = { __kanaPgPool?: Pool };
@@ -43,6 +43,15 @@ async function kvKeys(ns: string): Promise<string[]> {
   const pool = getPool();
   const res = await pool.query("SELECT key FROM bot.kv WHERE ns = $1", [ns]);
   return res.rows.map((r: { key: string }) => r.key);
+}
+
+async function kvList(ns: string): Promise<Array<{ key: string; value: unknown }>> {
+  const pool = getPool();
+  const res = await pool.query("SELECT key, value FROM bot.kv WHERE ns = $1 ORDER BY key", [ns]);
+  return res.rows.map((r: { key: string; value: unknown }) => ({
+    key: r.key,
+    value: typeof r.value === "string" ? JSON.parse(r.value) : r.value,
+  }));
 }
 
 export class SupabaseAdapter implements DataAdapter {
@@ -90,5 +99,60 @@ export class SupabaseAdapter implements DataAdapter {
     const next = current + 1;
     await kvSet("web_login_ratelimit", key, { count: next }, null);
     return next;
+  }
+
+  // Premium, sewa, dan limit: namespace yang sama dengan bot
+  // ("premium", "sewa_bot", "usage_limits" di bot.kv). Bot mengaksesnya
+  // lewat jembatan REST, web lewat adapter ini, datanya satu.
+  async getPremiumRecord(phone: string): Promise<AccessRecord | null> {
+    return kvGet<AccessRecord>("premium", phone);
+  }
+
+  async listPremium(): Promise<Array<{ key: string; record: AccessRecord }>> {
+    const rows = await kvList("premium");
+    return rows.map((r) => ({ key: r.key, record: (r.value ?? {}) as AccessRecord }));
+  }
+
+  async putPremium(phone: string, record: AccessRecord): Promise<void> {
+    await kvSet("premium", phone, record, null);
+  }
+
+  async deletePremium(phone: string): Promise<void> {
+    await kvDelete("premium", phone);
+  }
+
+  async getSewaRecord(key: string): Promise<AccessRecord | null> {
+    return kvGet<AccessRecord>("sewa_bot", key);
+  }
+
+  async listSewa(): Promise<Array<{ key: string; record: AccessRecord }>> {
+    const rows = await kvList("sewa_bot");
+    return rows.map((r) => ({ key: r.key, record: (r.value ?? {}) as AccessRecord }));
+  }
+
+  async putSewa(key: string, record: AccessRecord): Promise<void> {
+    await kvSet("sewa_bot", key, record, null);
+  }
+
+  async deleteSewa(key: string): Promise<void> {
+    await kvDelete("sewa_bot", key);
+  }
+
+  async getUsageCount(phone: string, group: string, dateKey: string): Promise<number> {
+    const rec = await kvGet<{ count: number }>("usage_limits", `${phone}:${group}:${dateKey}`);
+    return Math.max(0, Number(rec?.count) || 0);
+  }
+
+  async getTopUsers(): Promise<TopUser[]> {
+    const rows = await kvGet<unknown>("kv", "top_users");
+    if (!Array.isArray(rows)) return [];
+    return rows
+      .filter((r): r is Record<string, unknown> => Boolean(r) && typeof r === "object")
+      .map((r) => ({
+        name: String(r.name ?? ""),
+        xp: Math.max(0, Number(r.xp) || 0),
+        level: Math.max(1, Number(r.level) || 1),
+      }))
+      .slice(0, 10);
   }
 }

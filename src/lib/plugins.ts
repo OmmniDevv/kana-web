@@ -19,6 +19,8 @@ export interface PluginInfo {
   rawUrl: string;
   commands: PluginCommand[];
   commandCount: number;
+  premium: boolean;
+  limitGroup: string | null;
 }
 
 export interface PluginDetail extends PluginInfo {
@@ -66,6 +68,8 @@ interface ParsedMeta {
   usage: string;
   example: string;
   metaSource: "config" | "fallback";
+  premium: boolean;
+  limitGroup: string | null;
 }
 
 function parsePluginMeta(content: string, filePath: string): ParsedMeta {
@@ -100,6 +104,11 @@ function parsePluginMeta(content: string, filePath: string): ParsedMeta {
   const usageMatch = slice.match(/\busage\s*:\s*['"`]([^'"`]+)['"`]/);
   const exampleMatch = slice.match(/\bexample\s*:\s*['"`]([^'"`]+)['"`]/);
 
+  // Tanda berbayar dari config bot: premium: true dan limitGroup: 'download'.
+  const premium = /\bpremium\s*:\s*true\b/.test(slice);
+  const limitGroupMatch = slice.match(/\blimitGroup\s*:\s*['"`]([^'"`]+)['"`]/);
+  const limitGroup = limitGroupMatch ? limitGroupMatch[1] : null;
+
   const name = nameMatch ? nameMatch[1] : fallbackName;
   return {
     name,
@@ -110,7 +119,53 @@ function parsePluginMeta(content: string, filePath: string): ParsedMeta {
     usage: usageMatch ? usageMatch[1] : `.${name}`,
     example: exampleMatch ? exampleMatch[1] : `.${name}`,
     metaSource: description && nameMatch ? "config" : "fallback",
+    premium,
+    limitGroup,
   };
+}
+
+// Tanggal perubahan terakhir per berkas plugin, diambil dari 20 commit
+// repo paling baru (satu panggilan daftar commit + detail per commit,
+// semuanya kena cache ISR 3600). Berkas yang tidak tersentuh 20 commit
+// terakhir tidak punya tanggal di daftar ini; tanggal persisnya tetap
+// tersedia di halaman detail lewat fetchCommitInfo. Dipakai filter
+// "Baru ditambahkan" di katalog dengan kriteria jujur ini.
+async function fetchRecentFileDates(): Promise<Map<string, string>> {
+  const dates = new Map<string, string>();
+  try {
+    const listRes = await fetch(`https://api.github.com/repos/${REPO}/commits?per_page=20`, {
+      headers: githubHeaders(),
+      next: { revalidate: 3600 },
+    });
+    if (!listRes.ok) return dates;
+    const commits = (await listRes.json()) as Array<{ sha?: string; commit?: { author?: { date?: string } } }>;
+    if (!Array.isArray(commits)) return dates;
+    await Promise.all(
+      commits.map(async (c) => {
+        if (!c.sha) return;
+        try {
+          const res = await fetch(`https://api.github.com/repos/${REPO}/commits/${c.sha}`, {
+            headers: githubHeaders(),
+            next: { revalidate: 3600 },
+          });
+          if (!res.ok) return;
+          const detail = (await res.json()) as { files?: Array<{ filename?: string }> };
+          const date = c.commit?.author?.date;
+          if (!date || !Array.isArray(detail.files)) return;
+          for (const f of detail.files) {
+            if (f.filename && f.filename.startsWith("plugins/") && !dates.has(f.filename)) {
+              dates.set(f.filename, date);
+            }
+          }
+        } catch {
+          // abaikan commit yang gagal dibaca
+        }
+      })
+    );
+  } catch {
+    return dates;
+  }
+  return dates;
 }
 
 async function fetchCommitInfo(filePath: string): Promise<{ updatedAt?: string; sha?: string }> {
@@ -140,6 +195,10 @@ export async function getPlugins(): Promise<PluginInfo[]> {
       (item) => item.type === "blob" && item.path.startsWith("plugins/") && item.path.endsWith(".js")
     );
 
+    // Ambil tanggal commit terbaru secara paralel dengan konten plugin
+    // supaya tidak menambah waktu tunggu pengambilan katalog.
+    const recentDatesPromise = fetchRecentFileDates();
+
     const plugins = await Promise.all(
       files.map(async (file) => {
         const rawUrl = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${file.path}`;
@@ -168,10 +227,18 @@ export async function getPlugins(): Promise<PluginInfo[]> {
           rawUrl,
           commands,
           commandCount: 1 + meta.aliases.length,
+          premium: meta.premium,
+          limitGroup: meta.limitGroup,
         };
         return info;
       })
     );
+
+    const recentDates = await recentDatesPromise;
+    for (const p of plugins) {
+      const d = recentDates.get(p.path);
+      if (d) p.updatedAt = d;
+    }
 
     plugins.sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
     return plugins;
