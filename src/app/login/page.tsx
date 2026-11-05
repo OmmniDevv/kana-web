@@ -14,8 +14,6 @@ export default function LoginPage() {
   const [shakeKey, setShakeKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const [statusText, setStatusText] = useState("");
-  const [demoCode, setDemoCode] = useState<string | null>(null);
-  const [isDemo, setIsDemo] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   function fail(message: string) {
@@ -68,10 +66,6 @@ export default function LoginPage() {
         fail(data.error || "Gagal meminta kode");
         return;
       }
-      if (data.demo) {
-        setIsDemo(true);
-        setDemoCode(data.demoCode || null);
-      }
       setStatusText("Kode sedang disiapkan");
       setStep("code");
     } catch {
@@ -110,10 +104,6 @@ export default function LoginPage() {
 
   return (
     <div className="mx-auto w-full max-w-[560px] px-6 py-14">
-      <div className="mb-6 rounded-3xl border border-warn bg-warnbg p-4 text-sm text-warn">
-        <strong>MODE DEMO bila database belum terhubung:</strong> kode demo akan tampil di halaman ini dalam kotak DEMO. Di mode produksi, kode hanya dikirim lewat WhatsApp oleh bot.
-      </div>
-
       <div key={shakeKey} className={error ? "animate-shake" : ""}>
         <div className="rounded-3xl border border-line bg-panel p-8">
           <h1 className="text-3xl font-black">Masuk KANA Web</h1>
@@ -143,13 +133,6 @@ export default function LoginPage() {
           ) : (
             <form onSubmit={verifyCode} className="mt-8 space-y-4">
               <p className="rounded-2xl bg-bgsoft px-4 py-3 text-sm">{statusText || "Kode sedang disiapkan"}</p>
-              {isDemo && demoCode ? (
-                <div className="rounded-2xl border border-warn bg-warnbg p-4 text-center">
-                  <p className="text-xs font-black uppercase tracking-widest text-warn">Peringatan DEMO, kode contoh</p>
-                  <p className="animate-popIn mt-2 text-4xl font-black tracking-[0.3em]">{demoCode}</p>
-                  <p className="mt-2 text-xs text-warn">Kode ini hanya tampil di mode demo karena tidak ada bot yang mengirim WhatsApp.</p>
-                </div>
-              ) : null}
               <label className="block text-sm font-bold">Kode 6 digit</label>
               <input
                 value={code}
