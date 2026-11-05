@@ -15,7 +15,7 @@ export const SESSION_COOKIE = COOKIE_NAME;
 type GlobalSecret = { __kanaSessionSecret?: string };
 const globalStore = globalThis as unknown as GlobalSecret;
 
-// Fallback deterministik khusus pengembangan lokal dan mode demo.
+// Fallback deterministik khusus pengembangan lokal.
 // Bundle halaman dan route handler Next berjalan di konteks modul terpisah,
 // jadi nilai acak per proses tidak konsisten antar bundle dan sesi gagal
 // diverifikasi di halaman. Production wajib mengisi SESSION_SECRET.
