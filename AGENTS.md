@@ -26,4 +26,4 @@ Konvensi kerja untuk agen yang mengerjakan proyek ini.
 
 ## Verifikasi
 - npm run build wajib bersih sebelum dinyatakan selesai.
-- Uji lokal wajib mencakup halaman beranda, plugin, login, redirect dashboard, dan alur demo request-code sampai verify dan /api/me.
+- Uji lokal wajib mencakup halaman beranda, plugin, login, redirect dashboard, dan alur request-code sampai verify dan /api/me.
