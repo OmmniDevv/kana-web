@@ -14,11 +14,10 @@ KANA Web adalah aplikasi web pendamping bot WhatsApp KANA (repo GitHub OmmniDevv
 3. Login member dengan kode WhatsApp yang diminta dari web. Ini alur resmi baru dan bukan perintah bot.
 4. Dashboard member di rute /dashboard yang menampilkan profil, level dan progres XP, limit harian tersisa, saldo, pekerjaan, klan, inventaris, hewan peliharaan, dan riwayat klaim.
 5. Dashboard owner di rute /dashboard yang sama. Isinya bergantung peran sesi. Owner melihat panel tambahan berisi total pengguna, papan peringkat XP 10 teratas, jumlah plugin, status bot, dan kesehatan scraper bila tersedia.
-6. Mode demo. Bila KANA_DATABASE_URL kosong, web berjalan dengan DemoAdapter dan data contoh berlabel DEMO yang terlihat jelas di antarmuka.
 
 ## Alur Login Web Initiated
 1. Member membuka /login dan mengisi nomor WhatsApp.
-2. Server web membuat kode 6 digit, menyimpan hash sha256 kode itu ke storage bersama pada namespace web_login_requests dengan status pending dan masa berlaku 10 menit. Versi teks biasa kode hanya disimpan sementara agar dibaca bot, dan tidak pernah ditampilkan di mode supabase.
+2. Server web membuat kode 6 digit, menyimpan hash sha256 kode itu ke storage bersama pada namespace web_login_requests dengan status pending dan masa berlaku 10 menit. Versi teks biasa kode hanya disimpan sementara agar dibaca bot, dan tidak pernah ditampilkan di web; kode hanya dikirim lewat WhatsApp oleh bot.
 3. Bot dari tim lain mempolling record pending, mengirim kode lewat WhatsApp ke nomor member, menandai status menjadi sent, dan menghapus field codePlain.
 4. Member memasukkan kode di web. Server memverifikasi hash dengan perbandingan aman waktu, menandai record menjadi used, menghapus codePlain, lalu membuat cookie sesi bertanda tangan HMAC.
 5. Member diarahkan ke /dashboard.
@@ -35,11 +34,10 @@ KANA Web adalah aplikasi web pendamping bot WhatsApp KANA (repo GitHub OmmniDevv
 2. GET /plugins mengembalikan 200 dan menampilkan kartu plugin dari data GitHub nyata dengan total plugin yang terlihat.
 3. GET /login mengembalikan 200 dan form nomor bisa meminta kode.
 4. GET /dashboard tanpa cookie mengarahkan ke /login.
-5. Alur demo lengkap berjalan: POST /api/auth/request-code mengembalikan demoCode, POST /api/auth/verify dengan kode itu membuat sesi, GET /api/me dengan cookie mengembalikan 200 berisi profil demo, dan GET /dashboard dengan cookie mengembalikan 200.
+5. Alur login lengkap berjalan: POST /api/auth/request-code membuat record pending, POST /api/auth/verify dengan kode yang dikirim bot lewat WhatsApp membuat sesi, GET /api/me dengan cookie mengembalikan 200, dan GET /dashboard dengan cookie mengembalikan 200.
 6. Rate limit login berlaku: permintaan ulang dalam 2 menit ditolak 429 dan batas harian 5 kali ditolak 429.
 7. Verifikasi kode salah menambah attempts dan ditolak 401. Setelah 5 kali gagal, kode tidak bisa dipakai lagi.
 8. Endpoint unduh plugin menolak path traversal dengan 400 dan hanya menerima path yang diawali plugins/ dan berakhiran .js.
 9. Endpoint statistik owner hanya bisa diakses peran owner, selain itu 403.
 10. Build produksi bersih tanpa error TypeScript.
-11. Mode demo selalu menampilkan banner MODE DEMO di halaman login dan dashboard.
-12. Tidak ada em dash di semua konten.
+11. Tidak ada em dash di semua konten.
