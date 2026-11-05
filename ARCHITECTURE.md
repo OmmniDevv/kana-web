@@ -11,16 +11,14 @@ Aplikasi Next.js 16 App Router dengan TypeScript. Semua logika server berada di 
 - src/lib/session.ts: pembuatan dan verifikasi token sesi HMAC, serta pembacaan sesi dari cookie.
 - src/lib/phone.ts: normalisasi dan validasi nomor Indonesia.
 - src/lib/profile.ts: perhitungan level, progres XP, dan limit harian mengikuti user-service bot.
-- src/lib/data: kontrak DataAdapter dan dua implementasinya.
+- src/lib/data: kontrak DataAdapter dan implementasinya.
 
 ## Adapter Data
 Interface DataAdapter menyediakan getLoginRequest, putLoginRequest, deleteLoginRequest, getUserProfile, listUserKeys, getBotStatus, getDailyCount, dan bumpDailyCount.
 
 SupabaseAdapter memakai pg Pool dari KANA_DATABASE_URL dan query ke tabel bot.kv dengan kolom ns, key, value jsonb, dan expires_at.
 
-DemoAdapter aktif bila KANA_DATABASE_URL kosong. Adapter ini menyimpan record login di Map pada module scope dan menyediakan 3 profil contoh fiktif serta statistik bot contoh. Pada mode demo, endpoint request-code mengembalikan kode di respons agar alur bisa diuji tanpa bot, dan antarmuka menampilkannya dalam kotak peringatan DEMO.
-
-Fungsi getAdapter memilih adapter berdasarkan DATA_MODE bila diisi dengan nilai supabase atau demo. Bila DATA_MODE kosong, pilihan otomatis mengikuti keberadaan KANA_DATABASE_URL.
+Fungsi getAdapter selalu mengembalikan SupabaseAdapter. Bila KANA_DATABASE_URL belum terisi, query database gagal dan route handler membalas error server; tidak ada data contoh yang ditampilkan sebagai pengganti.
 
 ## Kontrak KV dengan Bot
 - Profil member: namespace users, key berupa digit nomor. Value mengikuti src/services/user-service.js di repo bot dengan field xp, balance, banned, registeredAt, name, limitDate, limitLeft, inventory, pet, job, clanId, lastDaily, lastHourly, dan lastWeekly.
