@@ -49,9 +49,6 @@ export async function POST(req: Request) {
     await adapter.putLoginRequest(phone, record);
     await adapter.bumpDailyCount(phone, dateKey);
 
-    if (adapter.mode === "demo") {
-      return NextResponse.json({ ok: true, expiresAt, demo: true, demoCode: code });
-    }
     return NextResponse.json({ ok: true, expiresAt });
   } catch (err) {
     console.error("request-code error", err);

@@ -1,10 +1,14 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
-import { getAdapter, isDemoMode } from "@/lib/data";
+import { getAdapter } from "@/lib/data";
 import type { BotStatus, UserProfile } from "@/lib/data";
-import { formatDateValue, levelFromXp, limitLeftToday, xpProgress } from "@/lib/profile";
+import { formatDateValue, levelFromXp, limitLeftToday, wibDateString, xpProgress } from "@/lib/profile";
 import { countCommands, getPlugins } from "@/lib/plugins";
+import { LIMIT_GROUPS, quotaFor, recordStatus, statusLabel } from "@/lib/premium";
+import type { AccessRecord } from "@/lib/data";
+import OwnerPremiumPanel from "@/components/OwnerPremiumPanel";
+import type { AccessEntry } from "@/components/OwnerPremiumPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +27,6 @@ export default async function DashboardPage() {
   if (!session) redirect("/login");
 
   const adapter = getAdapter();
-  const demo = isDemoMode();
 
   let profile: UserProfile | null = null;
   try {
@@ -33,6 +36,94 @@ export default async function DashboardPage() {
   }
   const hasProfile = profile !== null;
   const mp = profile as UserProfile;
+
+  // Status premium, sewa jadibot, dan sisa limit hari ini (data bersama
+  // dengan bot: namespace premium, sewa_bot, usage_limits). Bila belum
+  // ada record, statusnya memang tidak aktif, bukan data karangan.
+  let premiumRecord: AccessRecord | null = null;
+  let jadibotRecord: AccessRecord | null = null;
+  const usageByGroup: Record<string, number> = {};
+  try {
+    premiumRecord = await adapter.getPremiumRecord(session.phone);
+  } catch {
+    premiumRecord = null;
+  }
+  try {
+    const sewa = await adapter.getSewaRecord(session.phone);
+    if (sewa && sewa.type === "jadibot") jadibotRecord = sewa;
+  } catch {
+    jadibotRecord = null;
+  }
+  const premiumStatus = recordStatus(premiumRecord);
+  const jadibotStatus = recordStatus(jadibotRecord);
+  const todayWib = wibDateString();
+  for (const group of Object.keys(LIMIT_GROUPS)) {
+    try {
+      usageByGroup[group] = await adapter.getUsageCount(session.phone, group, todayWib);
+    } catch {
+      usageByGroup[group] = 0;
+    }
+  }
+  const paidTier = premiumStatus.active;
+
+  const premiumSection = (
+    <section className="mt-8">
+      <h2 className="text-2xl font-black tracking-tight">Status Premium dan Limit</h2>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-3xl border border-line bg-panel p-6">
+          <p className="text-4xl">{premiumStatus.active ? "💎" : "🔒"}</p>
+          <p className="mt-2 text-sm font-semibold">Premium personal</p>
+          <p className="mt-1 text-xs leading-5 text-muted">
+            {statusLabel(premiumStatus)}
+            {premiumStatus.active && !premiumStatus.permanent && premiumStatus.expiresAt ? `, berakhir ${formatDateValue(premiumStatus.expiresAt)}` : ""}
+            {!premiumStatus.exists ? ". Aktifkan lewat owner, lihat halaman Premium." : ""}
+          </p>
+        </div>
+        <div className="rounded-3xl border border-line bg-panel p-6">
+          <p className="text-4xl">{jadibotStatus.active ? "🤖" : "🔒"}</p>
+          <p className="mt-2 text-sm font-semibold">Sewa jadibot</p>
+          <p className="mt-1 text-xs leading-5 text-muted">
+            {statusLabel(jadibotStatus)}
+            {jadibotStatus.active && !jadibotStatus.permanent && jadibotStatus.expiresAt ? `, berakhir ${formatDateValue(jadibotStatus.expiresAt)}` : ""}
+            {!jadibotStatus.exists ? ". Sewa jadibot membuka perintah .jadibot untuk nomor kamu." : ""}
+          </p>
+        </div>
+        {Object.entries(LIMIT_GROUPS).map(([group, cfg]) => {
+          const quota = quotaFor(group, paidTier);
+          const used = usageByGroup[group] ?? 0;
+          return (
+            <div key={group} className="rounded-3xl border border-line bg-panel p-6">
+              <p className="animate-popIn text-gradient text-4xl font-black">{Math.max(0, quota - used)}</p>
+              <p className="mt-1 text-sm font-semibold">Sisa limit {cfg.label.toLowerCase()} hari ini</p>
+              <p className="mt-1 text-xs leading-5 text-muted">Terpakai {used} dari kuota {quota} ({paidTier ? "kuota premium" : "kuota gratis"}), reset tengah malam WIB</p>
+            </div>
+          );
+        })}
+      </div>
+      <p className="mt-3 text-xs text-muted">
+        Sewa grup tidak ditampilkan di sini karena berlaku per grup di WhatsApp. Cek status sewa grupmu dari dalam grup lewat perintah .ceksewa di bot, atau buka <Link href="/premium" className="font-bold text-violet">halaman Premium</Link>.
+      </p>
+    </section>
+  );
+
+  let ownerPremiumPanel: React.ReactNode = null;
+  if (session.role === "owner") {
+    try {
+      const [premList, sewaList] = await Promise.all([adapter.listPremium(), adapter.listSewa()]);
+      const toEntry = (key: string, record: AccessRecord): AccessEntry => {
+        const s = recordStatus(record);
+        return { key, active: s.active, expired: s.expired, permanent: s.permanent, expiresAt: s.expiresAt, record };
+      };
+      ownerPremiumPanel = (
+        <OwnerPremiumPanel
+          initialPremium={premList.map((r) => toEntry(r.key, r.record))}
+          initialSewa={sewaList.map((r) => toEntry(r.key, r.record))}
+        />
+      );
+    } catch {
+      ownerPremiumPanel = null;
+    }
+  }
 
   let ownerPanel: React.ReactNode = null;
   if (session.role === "owner") {
@@ -148,11 +239,9 @@ export default async function DashboardPage() {
   return (
     <div className="bg-bgsoft">
       <div className="mx-auto w-full max-w-[1200px] px-6 py-12">
-        {demo ? (
-          <div className="mb-6 rounded-3xl border border-warn bg-warnbg p-4 text-center font-bold text-warn">MODE DEMO, data contoh. Halaman ini memakai data fiktif karena database belum terhubung.</div>
-        ) : null}
-
         <p className="text-xs font-bold uppercase tracking-[0.25em] text-fuchsia">{session.role === "owner" ? "Dashboard Owner" : "Dashboard Member"}</p>
+
+        {premiumSection}
 
         {!hasProfile ? (
           <section className="mt-6 rounded-3xl border border-line bg-panel p-8">
@@ -235,6 +324,8 @@ export default async function DashboardPage() {
         )}
 
         {ownerPanel}
+
+        {ownerPremiumPanel}
       </div>
     </div>
   );

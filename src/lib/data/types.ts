@@ -42,8 +42,22 @@ export interface BotStatus {
   [key: string]: unknown;
 }
 
+export interface AccessRecord {
+  expiresAt?: number | string | null;
+  addedBy?: string;
+  addedAt?: number;
+  note?: string;
+  type?: string;
+}
+
+export interface TopUser {
+  name: string;
+  xp: number;
+  level: number;
+}
+
 export interface DataAdapter {
-  mode: "supabase" | "demo";
+  mode: "supabase";
   getLoginRequest(phone: string): Promise<LoginRequestRecord | null>;
   putLoginRequest(phone: string, record: LoginRequestRecord): Promise<void>;
   deleteLoginRequest(phone: string): Promise<void>;
@@ -52,6 +66,16 @@ export interface DataAdapter {
   getBotStatus(): Promise<BotStatus | null>;
   getDailyCount(phone: string, dateKey: string): Promise<number>;
   bumpDailyCount(phone: string, dateKey: string): Promise<number>;
+  getPremiumRecord(phone: string): Promise<AccessRecord | null>;
+  listPremium(): Promise<Array<{ key: string; record: AccessRecord }>>;
+  putPremium(phone: string, record: AccessRecord): Promise<void>;
+  deletePremium(phone: string): Promise<void>;
+  getSewaRecord(key: string): Promise<AccessRecord | null>;
+  listSewa(): Promise<Array<{ key: string; record: AccessRecord }>>;
+  putSewa(key: string, record: AccessRecord): Promise<void>;
+  deleteSewa(key: string): Promise<void>;
+  getUsageCount(phone: string, group: string, dateKey: string): Promise<number>;
+  getTopUsers(): Promise<TopUser[]>;
 }
 
 export function defaultProfile(): UserProfile {
