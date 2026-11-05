@@ -49,7 +49,6 @@ Aksen tetap di kedua mode:
 - Tab kategori: pil aktif memakai gradasi brand dengan bayangan fuchsia lembut.
 - Form login: panel terang, status langkah yang jelas, centang sukses gradasi dengan animasi checkPop, dan guncangan shake saat error.
 - Toggle tema: tombol bulat di navigasi atas, pilihan tersimpan di localStorage kunci kana-theme, bawaan terang.
-- Banner demo: pita peringatan kuning dengan teks MODE DEMO yang selalu terlihat di mode demo.
 - Skeleton: efek shimmer saat data memuat.
 
 ## Gerak
