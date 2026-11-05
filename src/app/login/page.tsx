@@ -129,6 +129,10 @@ export default function LoginPage() {
               <button disabled={loading} className="bg-gradient-brand w-full rounded-full py-3 font-bold text-white hover:opacity-90 disabled:opacity-60">
                 {loading ? "Meminta kode..." : "Minta Kode via WhatsApp"}
               </button>
+              <p className="text-center text-sm font-semibold text-muted">
+                Sudah punya kode dari perintah .webcode di WhatsApp?{" "}
+                <a href="/login/webcode" className="text-violet hover:underline">Masuk dengan kode saja</a>
+              </p>
             </form>
           ) : (
             <form onSubmit={verifyCode} className="mt-8 space-y-4">

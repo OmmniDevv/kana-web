@@ -26,6 +26,14 @@ export interface LoginRequestRecord {
   createdAt: string;
 }
 
+export interface WebLoginCodeRecord {
+  // Kontrak docs/WEB.md kana-md jalur .webcode: namespace web_login,
+  // value { codeHash, expiresAt } dan expiresAt epoch ms (string ISO juga
+  // diterima pembaca supaya tahan format lama).
+  codeHash: string;
+  expiresAt: number | string;
+}
+
 export interface BotStatus {
   // Kontrak docs/WEB.md kana-md: namespace kv, key bot_stats.
   startedAt?: number;
@@ -61,6 +69,8 @@ export interface DataAdapter {
   getLoginRequest(phone: string): Promise<LoginRequestRecord | null>;
   putLoginRequest(phone: string, record: LoginRequestRecord): Promise<void>;
   deleteLoginRequest(phone: string): Promise<void>;
+  listWebLoginCodes(): Promise<Array<{ phone: string; record: WebLoginCodeRecord }>>;
+  deleteWebLoginCode(phone: string): Promise<void>;
   getUserProfile(phone: string): Promise<UserProfile | null>;
   listUserKeys(): Promise<string[]>;
   getBotStatus(): Promise<BotStatus | null>;

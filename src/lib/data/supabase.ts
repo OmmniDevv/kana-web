@@ -1,5 +1,5 @@
 import { Pool } from "pg";
-import type { AccessRecord, BotStatus, DataAdapter, LoginRequestRecord, TopUser, UserProfile } from "./types";
+import type { AccessRecord, BotStatus, DataAdapter, LoginRequestRecord, TopUser, UserProfile, WebLoginCodeRecord } from "./types";
 import { normalizeProfile } from "./types";
 
 type GlobalPool = { __kanaPgPool?: Pool };
@@ -67,6 +67,20 @@ export class SupabaseAdapter implements DataAdapter {
 
   async deleteLoginRequest(phone: string): Promise<void> {
     await kvDelete("web_login_requests", phone);
+  }
+
+  // Jalur .webcode: bot menulis namespace web_login (satu record per nomor,
+  // hanya hash kode). Verifikasi kode-saja harus memindai daftar ini karena
+  // kode tidak membawa petunjuk nomor sama sekali.
+  async listWebLoginCodes(): Promise<Array<{ phone: string; record: WebLoginCodeRecord }>> {
+    const rows = await kvList("web_login");
+    return rows
+      .filter((r) => r.value && typeof r.value === "object" && typeof (r.value as WebLoginCodeRecord).codeHash === "string")
+      .map((r) => ({ phone: r.key, record: r.value as WebLoginCodeRecord }));
+  }
+
+  async deleteWebLoginCode(phone: string): Promise<void> {
+    await kvDelete("web_login", phone);
   }
 
   async getUserProfile(phone: string): Promise<UserProfile | null> {
