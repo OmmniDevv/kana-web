@@ -22,6 +22,16 @@ export default async function PluginDetailPage({ params }: { params: Promise<{ s
       <h1 className="mt-3 break-words text-5xl font-black tracking-tight">{plugin.name}</h1>
       <p className="mt-4 max-w-2xl text-lg text-muted">{plugin.description}</p>
       {plugin.descriptionEn ? <p className="mt-2 max-w-2xl text-sm text-muted">{plugin.descriptionEn}</p> : null}
+      {plugin.premium || plugin.limitGroup ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {plugin.premium ? (
+            <span className="bg-gradient-brand rounded-full px-3 py-1.5 text-xs font-bold text-white">💎 Premium</span>
+          ) : null}
+          {plugin.limitGroup ? (
+            <span className="rounded-full border border-violet px-3 py-1.5 text-xs font-bold text-violet">⏳ Limit {plugin.limitGroup}</span>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-3xl border border-line bg-panel p-5">
